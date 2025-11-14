@@ -1,5 +1,5 @@
 # Install packages
-# install.packages(c("tidyverse", "purrr", "furrr"))
+# install.packages(c("tidyverse", "purrr", "furrr", "rnaturalearth", "tmap", "terra"))
 
 # Load packages
 library(tidyverse)
