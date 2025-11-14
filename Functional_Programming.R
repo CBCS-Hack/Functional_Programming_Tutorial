@@ -120,3 +120,73 @@ plot_raster <- function(x, title) {
 pwalk(list(list_files, titles), plot_raster)
 
 # MORE TERRA EXAMPLES -----------------------------------------------------
+
+# combining rasters
+
+load_rast <- function(x, name) {
+
+  ras <- rast(x)
+  names(ras) <- name
+  return(ras)
+
+}
+
+# Review list_files
+list_files
+
+# Let's make a string of names
+names <- c("abyssopelagic", "bathypelagic", "epipelagic")
+
+# Let's load them
+loaded <- pmap(list(list_files, names), load_rast)
+
+# Let's concatenate (or layer) these rasters
+conc <- loaded %>%
+  reduce(c) # reduce is really powerful and you can use different functions like bind_rows, bind_cols depending on your intended functionality
+
+# check if it's doing what you want it to do
+plot(conc) # looks about right :)
+
+# Now let's try to do some terra stats
+rast_stats <- function(x) {
+
+  # Load the file
+  ras <- rast(x)
+
+  mean_ras <- app(ras, fun = "mean", na.rm = TRUE)
+  mean_time <- global(ras, fun = "mean", na.rm = TRUE)
+
+  return(list(mean_ras = mean_ras,
+              mean_time = mean_time)) # returning two outputs
+
+}
+
+list_files <- list.files("climate", full.names = TRUE)
+
+stats <- map(list_files, rast_stats)
+
+# let's 'pluck' the data that we want
+# let's say we want to plot `mean_ras` but only of the first model
+plt <- pluck(stats, 1, 1) # same as stats[[1]][[1]] or stats[[1]]$mean_ras
+tm_shape(plt) +
+  tm_raster("mean") # we're looking at mean temperature globally :)
+
+# let's say we want to print `mean_time` of the second model
+st <- pluck(stats, 2, 2) # same as stats[[2]][[2]] or stats[[2]]$mean_time
+head(st) # we're looking at mean monthly temperatures across all of the cells
+
+
+# FURRR  ------------------------------------------------------------------
+
+# I won't go into too much detail with furrr, but it's functionality adds onto `purrr`s and increases its power using `parallel`
+# If you are working on a lot of big data sets repetitively, then furrr is for you!
+
+# Because we're working on smaller data, we can't really show the functionality of `furrr`, but the syntax is similar to `purrr`
+
+# Just as an example
+# DO NOT RUN because it won't work :)
+w <- parallelly::availableCores(method = "system", omit = 2)
+
+plan(future::multisession, workers = w)
+future_walk(netCDFs, change_lvlbounds)
+plan(future::sequential)
