@@ -65,6 +65,7 @@ plot_raster <- function(x) {
 list_files <- list.files("rasters", full.names = TRUE)
 
 plots <- map(list_files, plot_raster)
+plots[[1]]
 
 # I want to save these plots
 # Let's edit the function
